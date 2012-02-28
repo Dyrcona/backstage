@@ -20,6 +20,7 @@ use warnings;
 use JSONPrefs;
 use Backstage::Export;
 use Backstage::Email;
+use Backstage::FTP;
 
 my $prefs_file = $ARGV[0] || $ENV{'HOME'} . "/myprefs.d/bslw.json";
 
@@ -33,22 +34,21 @@ my $email = Backstage::Email->new($prefs);
 $email->add_recipient(@{$prefs->export->recipients});
 
 if ($upload_file) {
-    $email->subject('BSLW Export Success');
-    $email->add_part(
-        {
-            Data => "File is ready for upload to Backstage in "
-                . $upload_file,
-            Type => 'TEXT'
-        }
-    );
+    my $ftp = Backstage::FTP->new($prefs);
+    my $remote_file = $ftp->upload($upload_file);
+    if ($remote_file) {
+        $email->subject('BSLW Export Success');
+        $email->add_part(
+            {
+                Data => $remote_file . " uploaded to FTP server",
+                Type => 'TEXT'
+            }
+        );
+    } else {
+        croak("Failed to upload " . $upload_file);
+    }
 } else {
-    $email->subject('BSLW Export Failure');
-    $email->add_part(
-        {
-            Data => "Failed to export file to " . $prefs->export->output,
-            Type => 'TEXT'
-        }
-    );
+    croak("Failed to export " . $prefs->export->output);
 }
 
 $email->send;
