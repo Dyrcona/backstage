@@ -85,7 +85,7 @@ sub send {
     # Create the message:
     my $message = MIME::Lite->new(
         From => $emailFrom,
-        To => $self->{'recipients'},
+        To => join(',', @{$self->{'recipients'}}),
         Subject => $self->{'subject'},
         Type => 'multipart/mixed'
     );
