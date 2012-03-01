@@ -68,4 +68,28 @@ sub upload {
     return undef;
 }
 
+sub download {
+    my $self = shift;
+    my @filenames = ();
+    my $source = $self->{'prefs'}->download->source_dir;
+    my $destination = $self->{'prefs'}->download->destination_dir;
+
+    $self->sign_on unless ($self->{'signed_on'});
+    $self->{'ftp'}->cwd($source) or croak $self->{'ftp'}->message;
+    my @remotes = $self->{'ftp'}->dir;
+    foreach my $remote (@remotes) {
+        my @parts = split(/ +/, $remote);
+        my $file = $parts[$#parts];
+        my $target = $destination . "/" . $file;
+        if ($self->{'ftp'}->get($file, $target)) {
+            push(@filenames, $target);
+        } else {
+            carp $self->{'ftp'}->message;
+        }
+    }
+    $self->sign_off;
+
+    return @filenames;
+}
+
 1;
