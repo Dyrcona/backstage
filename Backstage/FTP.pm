@@ -25,8 +25,27 @@ sub new {
     my $class = shift;
     my $prefs = shift;
     my $self->{'prefs'} = $prefs->ftp;
+    $self->{'signed_on'} = 0;
     bless($self, $class);
     return $self;
+}
+
+sub sign_on {
+    my $self = shift;
+    $self->{'ftp'} = Net::FTP->new($self->{'prefs'}->host)
+        or croak("Failed to connect to " . $self->{'prefs'}->host);
+    $self->{'ftp'}->login($self->{'prefs'}->username,$self->{'prefs'}->password)
+        or croak($self->{'ftp'}->message);
+    $self->{'ftp'}->binary or croak $self->{'ftp'}->message;
+    $self->{'signed_on'} = 1;
+}
+
+sub sign_off {
+    my $self = shift;
+    if ($self->{'signed_on'}) {
+        $self->{'ftp'}->quit();
+        $self->{'signed_on'} = 0;
+    }
 }
 
 sub upload {
@@ -35,14 +54,12 @@ sub upload {
     my @stat = stat($file);
 
     if (scalar @stat) {
-        my $ftp = Net::FTP->new($self->{'prefs'}->host)
-            or croak("Failed to connect to " . $self->{'prefs'}->host);
-        $ftp->login($self->{'prefs'}->username, $self->{'prefs'}->password)
-            or croak($ftp->message);
-        $ftp->binary or croak $ftp->message;
-        $ftp->cwd($self->{'prefs'}->upload_dir) or croak $ftp->message;
-        $ftp->put($file, basename($file)) or croak $ftp->message;
-        $ftp->quit();
+        $self->sign_on unless ($self->{'signed_on'});
+        $self->{'ftp'}->cwd($self->{'prefs'}->upload_dir)
+            or croak $self->{'ftp'}->message;
+        $self->{'ftp'}->put($file, basename($file))
+            or croak $self->{'ftp'}->message;
+        $self->sign_off;
         return basename($file);
     } else {
         croak("$file does not exist");
