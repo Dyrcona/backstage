@@ -54,8 +54,10 @@ sub doFile {
         );
         if ($filename =~ /\.BIB\./) {
             $self->doBibs($file);
+        } elsif ($filename =~ /\.DEL\./) {
+            $self->doDeletes($file);
         } else {
-            carp "We don't do authorities, yet."
+            $self->doAuths($file);
         }
         $file->close();
         $self->{'scr'}->logout;
@@ -91,7 +93,8 @@ sub doBibs {
                     $needImport = DateTime->compare($bslw_date, $rec_date);
                 }
                 if ($needImport > 0) {
-                    print("Import $id\n");
+                    print("Import $id\n")
+                        if ($self->{'prefs'}->get('import')->print_import);
                     my $newMARC = $input->as_xml_record();
                     $bre->marc(clean_marc($newMARC));
                     $bre->edit_date('now()');
@@ -99,12 +102,63 @@ sub doBibs {
                     $editor->update_biblio_record_entry($bre);
                     $editor->commit;
                 } else {
-                    print("Keep $id\n");
+                    print("Keep $id\n")
+                        if ($self->{'prefs'}->get('import')->print_keep);
                 }
             }
         } else {
             carp "No 901\$c in input record $id";
         }
+    }
+    $editor->finish;
+}
+
+sub doDeletes {
+    my $self = shift;
+    my $file = shift;
+    my $editor = $self->{'scr'}->editor(authtoken=>$self->{'auth'});
+    while (my $input = $file->next()) {
+        my @ares = find_matching_ares($editor, $input);
+        if (scalar @ares) {
+            $editor->xact_begin;
+            foreach my $are (@ares) {
+                print("Deleting auth " . $are->id . "\n");
+                $editor->delete_authority_record_entry($are);
+            }
+            $editor->commit;
+        }
+    }
+    $editor->finish;
+}
+
+sub doAuths {
+    my $self = shift;
+    my $file = shift;
+    my $editor = $self->{'scr'}->editor(authtoken=>$self->{'auth'});
+    while (my $input = $file->next()) {
+        my @ares = find_matching_ares($editor, $input);
+        $editor->xact_begin;
+        if (scalar @ares) {
+            foreach my $are (@ares) {
+                print("Updating auth: " . $are->id . "\n");
+                my $newMARC = $input->as_xml_record();
+                $are->marc(clean_marc($newMARC));
+                $are->edit_date('now()');
+                $editor->update_authority_record_entry($are);
+            }
+        } else {
+            my $are = Fieldmapper::authority::record_entry->new();
+            my $marc = $input->as_xml_record();
+            $are->marc(clean_marc($marc));
+            $are->last_xact_id("IMPORT-" . time);
+            $are->source(2);
+            if ($are = $editor->create_authority_record_entry($are)) {
+                print("Created new auth " . $are->id . "\n");
+            } else {
+                print("Failed to create new auth\n");
+            }
+        }
+        $editor->commit;
     }
     $editor->finish;
 }
@@ -115,6 +169,40 @@ sub utf8 {
         $self->{'utf8'} = shift;
     }
     return $self->{'utf8'};
+}
+
+sub find_matching_ares {
+    my $e = shift;
+    my $rec = shift;
+    my @results = ();
+    my $afrs = [];
+    my $subfield = $rec->subfield('010', 'a');
+    if ($subfield) {
+        $afrs = $e->search_authority_full_rec(
+            {
+                'tag' => '010',
+                'subfield' => 'a',
+                'value' => { "=" => ['naco_normalize', $subfield, 'a'] },
+                'deleted' => 'f'
+            }
+        );
+        foreach my $afr (@$afrs) {
+            push(@results, $e->retrieve_authority_record_entry($afr->record));
+        }
+    } elsif ($subfield = $rec->subfield('035', 'a')) {
+        $afrs = $e->search_authority_full_rec(
+            {
+                'tag' => '035',
+                'subfield' => 'a',
+                'value' => { "=" => ['naco_normalize', $subfield, 'a'] },
+                'deleted' => 'f'
+            }
+        );
+        foreach my $afr (@$afrs) {
+            push(@results, $e->retrieve_authority_record_entry($afr->record));
+        }
+    }
+    return @results;
 }
 
 sub fix005 {

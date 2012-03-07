@@ -76,12 +76,23 @@ foreach my $file (@input_files) {
     }
 
     # Handle authority deletes:
+    my $authfile;
     foreach $member ($zip->membersMatching('\.DEL\.')) {
-        print("del: " . $member->fileName() . "\n");
+        $authfile = $cwd . basename($member->fileName());
+        if ($member->extractToFileNamed($authfile) == AZ_OK) {
+            $import->doFile($authfile);
+        } else {
+            carp "Failed to extract " . $member->fileName() . " to $authfile";
+        }
     }
 
     # Handle other authorities
     foreach $member ($zip->membersMatching('^(?!.*\.(BIB|DEL)\.)')) {
-        print("auth: " . $member->fileName() . "\n");
+        $authfile = $cwd . basename($member->fileName());
+        if ($member->extractToFileNamed($authfile) == AZ_OK) {
+            $import->doFile($authfile);
+        } else {
+            carp "Failed to extract " . $member->fileName() . " to $authfile";
+        }
     }
 }
