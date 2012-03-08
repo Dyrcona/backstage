@@ -182,8 +182,7 @@ sub find_matching_ares {
             {
                 'tag' => '010',
                 'subfield' => 'a',
-                'value' => { "=" => ['naco_normalize', $subfield, 'a'] },
-                'deleted' => 'f'
+                'value' => { "=" => ['naco_normalize', $subfield, 'a'] }
             }
         );
         foreach my $afr (@$afrs) {
@@ -194,8 +193,7 @@ sub find_matching_ares {
             {
                 'tag' => '035',
                 'subfield' => 'a',
-                'value' => { "=" => ['naco_normalize', $subfield, 'a'] },
-                'deleted' => 'f'
+                'value' => { "=" => ['naco_normalize', $subfield, 'a'] }
             }
         );
         foreach my $afr (@$afrs) {
