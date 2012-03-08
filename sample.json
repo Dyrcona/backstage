@@ -1,0 +1,55 @@
+{
+"export":
+	{
+	"last_run_date":"2012-01-01 00:00:00-00",
+	"output":"/path/to/file.mrc",
+	"sources": [ 1, 2 ],
+	"recipients": ["user@domain.tld"]
+	},
+"evergreen":
+	{
+	"osrf_config":"/openils/conf/opensrf_core.xml",
+	"authentication":
+		{
+		"username" : "USERNAME",
+		"password" : "PASSWORD",
+		"workstation" : "WORKSTATION",
+		"type" : "staff"
+		}
+	},
+"email":
+	{
+	"smtp":
+		{
+		"host" : "domain.tld",
+    		"port" : 25|465|587,
+		"user" : "USERNAME",
+		"password" : "PASSWORD",
+    		"encryption" : "tls|ssl",
+    		"from" :
+		       { 
+		       "name" : "SENDER NAME",
+		       "email" : "user@domain.tld"
+		       }
+		}
+	},
+"ftp":
+	{
+	"host":"209.90.107.217",
+	"username":"USERNAME",
+	"password":"PASSWORD",
+	"upload_dir":"in",
+	"download":
+		{
+		"source_dir":"out",
+		"destination_dir":"/path/to/directory"
+		}
+	},
+"import":
+	{
+	"working_dir":"/path/to/directory",
+	"print_import":true,
+	"print_keep":true,
+	"print_delete":true
+	}
+}
