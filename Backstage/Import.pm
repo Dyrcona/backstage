@@ -122,7 +122,8 @@ sub doDeletes {
         if (scalar @ares) {
             $editor->xact_begin;
             foreach my $are (@ares) {
-                print("Deleting auth " . $are->id . "\n");
+                print("Deleting auth " . $are->id . "\n")
+                    if ($self->{'prefs'}->get('import')->print_delete);
                 $editor->delete_authority_record_entry($are);
             }
             $editor->commit;
@@ -140,7 +141,8 @@ sub doAuths {
         $editor->xact_begin;
         if (scalar @ares) {
             foreach my $are (@ares) {
-                print("Updating auth: " . $are->id . "\n");
+                print("Updating auth: " . $are->id . "\n")
+                    if ($self->{'prefs'}->get('import')->print_import);
                 my $newMARC = $input->as_xml_record();
                 $are->marc(clean_marc($newMARC));
                 $are->edit_date('now()');
@@ -153,9 +155,10 @@ sub doAuths {
             $are->last_xact_id("IMPORT-" . time);
             $are->source(2);
             if ($are = $editor->create_authority_record_entry($are)) {
-                print("Created new auth " . $are->id . "\n");
+                print("Created new auth " . $are->id . "\n")
+                    if ($self->{'prefs'}->get('import')->print_import);
             } else {
-                print("Failed to create new auth\n");
+                carp("Failed to create new auth\n");
             }
         }
         $editor->commit;
