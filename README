@@ -1,0 +1,363 @@
+README for Backstage Integration Software
+=========================================
+Jason Stephenson <jstephenson@mvlc.org>
+
+Copyright (C) 2012 Merrimack Valley Library Consortium
+
+Purpose
+-------
+
+The software in this package is intended to help one manage the import
+and export of cataloging information from an Evergreen ILS
+installation to Backstage Library Works.  It was created to meet the
+needs of the Merrimack Valley Library Consortium, and so may not
+exactly meet your needs.  An honest attempteffort was expended in
+making the programs generic and configurable enough to hopefully meet
+others' needs.  That said, this software comes with absolutely no
+warranty of any kind.  You've got the code, so if it doesn't work
+exactly right for you, then you're free to make it so.
+
+Prerequisites
+-------------
+
+This software requires the following Perl modules be installed:
+-----------------------------------------------------------------------------
+Archive::Zip
+DateTime
+DateTime::Format::ISO8601
+Encode
+File::Basename
+JSONPrefs
+MARC::File::USMARC
+MARC::File::XML
+MARC::Record
+MIME::Lite
+Module::Load
+Net::FTP
+Net::SMTP (or)
+Net::SMTP::SSL (or)
+Net::SMTP::TLS
+OpenILS::Utils::Cronscript
+OpenILS::Utils::Normalize
+OpenSRF::AppSession
+OpenSRF::System
+POSIX
+-----------------------------------------------------------------------------
+
+Most of the above should either come with your Perl distribution or
+will be installed as a result of installing the OpenSRF and Evergreen
+software.  The others, with the exception of JSONPrefs, should be
+available either as packages on your system or via CPAN.
+
+JSONPrefs can be found online here:
+http://git.mvlcstaff.org/?p=jason/JSONPrefs.git;a=summary
+
+Installation
+------------
+
+Assuming you have installed all of the prerequistes, installing the
+Backstage programs is a matter of copying the Backstage directory and
+its contents to somewhere that perl will see them and copying the
+BSLWimport.pl and BSLWexport.pl programs to somewhere you can run
+them.
+
+I personally like to install these custom programs as a regular user
+on the system, typically the one that we normally use to start and
+stop the OpenSRF and Evergreen services.  I also like to install them
+in that user's home directory.  I will usually make sure that this
+user's `PATH` variable includes `${HOME}/bin` and that the `PERL5LIB`
+variable includes `${HOME}/lib/perl` and then copy the files to those
+locations like so:
+
+[source, sh]
+----------------------------------------------------------------------------
+cp -r Backstage ${HOME}/lib/perl
+cp *.pl ${HOME}/bin
+chmod +x ${HOME}/bin/BSLW*.pl
+----------------------------------------------------------------------------
+
+If `${HOME}/lib/perl` does not already exist, then you may need to
+create it ahead of time:
+
+[source, sh]
+----------------------------------------------------------------------------
+mkdir -p ${HOME}/lib/perl
+----------------------------------------------------------------------------
+
+Configuration
+-------------
+
+The software in this suite is configured using a
+http://www.json.org/[JSON] preferences file.  This file must contain a
+valid JSON object.  Fortunately, a JSON file is easy to edit by hand
+in a text editor, and a sample.json file is provided that you can
+simply fill in and then copy to an appropriate place.  By default, the
+software will look for the configuration file in
+`${HOME}/myprefs.d/bslw.json` but you can put it elsewhere if you
+either change the source code or remember to list an alternate
+configuration file as an argument when invoking the software. (See
+Invoking the Software, below.)
+
+The object has several members for each significant module with the
+software package.  Each significant option is documented below:
+
+export
+~~~~~~
+
+The `export` member controls the main settings for the `BSLWexport.pl`
+program.  It has several members of its own.
+
+last_run_date
+^^^^^^^^^^^^^
+
+A date and time in ISO 8601 format to indicate the start date for
+exporting bibliographic records from the database.  All records
+entered after this date and time will be exported and sent to
+Backstage for processing.  This field is automaticaly updated each
+time the export program is run.  The default starting value is January
+1, 2012.  You may want to change this for your first run.
+
+output
+^^^^^^
+
+This is the full path to the file where the exported MARC records are
+stored.  You need to change this to something that can be written by
+the user who runs the export program.
+
+sources
+^^^^^^^
+
+This is an array of the ids of bibliographic record sources, taken
+from the `config.bib_source` table, for which you want to export MARC
+bibliographic records.  It defaults to 1 and 2, which are OCLC and
+Local System defaults that come with Evergreen.  If you wish to add
+other sources, then add their ids to the array.
+
+recipients
+^^^^^^^^^^
+
+This is a list, formatted as a JSON array, of the email addresses to
+be notified when the output file is successfully uploaded to the
+Backstage FTP site.  You should typically have the software email
+yourself, and someone at Backstage who can process the uploaded file.
+
+evergreen
+~~~~~~~~~
+
+The `evergreen` member contains settings necessary for the proper
+functioning of the Evergreen library code used by the Backstage
+software modules.
+
+osrf_config
+^^^^^^^^^^^
+
+This should be set to the path to your `opensrf_core.xml`
+configuration file.  The default value is a good guess of where many
+installations put it.  If yours is located somewhere else, then you
+will need to change this value.
+
+authentication
+^^^^^^^^^^^^^^
+
+The `authentication` points to values needed to sign into the
+Evergreen/OpenSRF backend.  It has several members of its own that you
+will need to configure, since the defaults should not work on any
+system.
+
+username
+++++++++
+
+The Evergreen user name (from the `actor.usr` table) that will be
+logging in to retrieve information and make any required updates.
+
+password
+++++++++
+
+The Evergreen user's password.
+
+workstation
++++++++++++
+
+A workstation registered at an organizational unit where the Evergreen
+user can login and has permission to edit bibliographic and authority
+records for the whole consortium.
+
+type
+++++
+
+The default value of `staff` should likely be left alone.
+
+email
+~~~~~
+
+The `email` member holds configuration for sending email.  Currently
+it has 1 member called `smtp`.
+
+smtp
+^^^^
+
+host
+++++
+
+You need to replace the nonsensical default value with hostname that
+you use to send email.
+
+port
+++++
+
+The default value includes three of the most common ports used for
+sending email separated by the `|` character.  You need to delete the
+port options that you don't use and leave only the one you need
+behind.  If you send email using some ven more obscure port, then
+replace the defaults with that port number.
+
+user
+++++
+
+This is the username that you use when authenticating to send email.
+
+password
+++++++++
+
+This is the password that you use when authenticating to send email.
+The software assumes you must authenticate to send email, and will not
+work otherwise.
+
+encryption
+++++++++++
+
+The default for this member gives you options of `ssl` or `tls`.
+These are the only encryption options supported.  If you can use
+encryption when authenticating to send email, then please select the
+appropriate form of encryption.  If you do authenticate to send email
+without encryption (not recommended), then you may delete the default
+value from this field, leaving an empty quoted string.  The latter
+will disable the selection of encryption at runtime.
+
+from
+++++
+
+This member has two members, `name` and `email`, that you need to
+configure with the sender's name and email address respectively.
+
+ftp
+~~~
+
+Configuration for sending files to, and receiving files from,
+Backstage via their public FTP server.
+
+host
+^^^^
+
+The host name or IP address that Backstage tells you to use.
+Typically, you can leave the default value untouched here, unless they
+have provided you with something different.
+
+username
+^^^^^^^^
+
+The username that Backstage instructed you to use for connecting to
+the FTP server.
+
+password
+^^^^^^^^
+
+The password that Backstage instructed you to use for connecting to
+the FTP server.
+
+upload_dir
+^^^^^^^^^^
+
+The directory where you were told to put files.  Typically, you can
+leave the default untouched, unless instructed to use something
+different by Backstage.
+
+download
+^^^^^^^^
+
+This member has two members of its own:
+
+source_dir::
+  The directory on the server where you pickup files.  Typically, you
+  can leave the default untouched, unless instructed to use something
+  different by Backstage.
+
+destination_dir::
+  The full path to a directory on your computer where the files downloaded
+  from the server will be stored.  The user running the import program must
+  have permissions to read and write files in this directory.
+
+import
+~~~~~~
+
+Options for the `BSLWimport.pl` program that are not covered by the
+module configrations in the members listed above.
+
+working_dir
+^^^^^^^^^^^
+
+This is the full path to a directory where downloaded and intermediate
+files will be stored.  The user running the import must have
+permissions to read and write files in this directory.  The directory
+must exist before the program is run.
+
+print_import
+^^^^^^^^^^^^
+
+A boolean (`true` or `false`) field to indicate whether or not we
+print an acknowledgement message for each record imported.
+
+print_keep
+^^^^^^^^^^
+
+A boolean (`true` or `false`) field to indicate whether or not we
+print an acknowledgement message for each record kept, or not
+overwritten during import.
+
+print_delete
+^^^^^^^^^^^^
+
+A boolean (`true` or `false`) field to indicate whether or not we
+print an acknowledgement message for each record deleted during
+import.
+
+Invoking the Software
+---------------------
+
+BSLWexport.pl
+~~~~~~~~~~~~~
+
+Run this program to export a set of newly cataloged bibs to Backstage
+for processing.  It will accept 1 optional argument that it assumes to
+be the full path name to a configuration file to use.  If this
+argument is not provided, then default configuration file is used.
+
+You might want to add a `crontab` entry to run this program on a
+regular basis.  For instance, we run it at the beginning of every
+quarter to send all of the new records added in the previous quarter.
+
+BSLWimport.pl
+~~~~~~~~~~~~~
+
+You will likely want to run this program on demand whenever you
+receive the email from Backstage that your files are ready for
+processing.
+
+Alternatively, you may run this program with a list of file path names
+as command line arguments.  These files should be ones that you have
+already downloaded or received from Backstage.  When run in this way,
+the program will process the files given and not attempt to download
+anything from the server.
+
+If any file on the command line ends in `.json`, it will be read and
+used as an alternate configuration file.  This file will not count
+when determining if the program should retrieve files via FTP.  That
+is, if this is the only file listed on the command line, then the
+program will connect to FTP to download and process files.
+
+README License
+--------------
+This work is licensed under the Creative Commons Attribution-ShareAlike 3.0
+Unported License. To view a copy of this license, visit
+http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to Creative
+Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
