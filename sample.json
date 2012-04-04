@@ -50,6 +50,7 @@
 	"working_dir":"/path/to/directory",
 	"print_import":true,
 	"print_keep":true,
-	"print_delete":true
+	"print_delete":true,
+	"cleanup":true
 	}
 }

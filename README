@@ -321,6 +321,12 @@ A boolean (`true` or `false`) field to indicate whether or not we
 print an acknowledgement message for each record deleted during
 import.
 
+cleanup
+^^^^^^^
+
+A boolean (`true` or `false`) field to indicate whether or not files
+extracted from zip files should be deleted when we are done with them.
+
 Invoking the Software
 ---------------------
 
