@@ -70,7 +70,7 @@ foreach my $file (@input_files) {
         my $bibfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($bibfile) == AZ_OK) {
             $import->doFile($bibfile);
-            cleanup($bibfile) if ($prefs->get('import')->cleanup =~ /^true$/i);
+            cleanup($bibfile) if ($prefs->get('import')->cleanup);
         } else {
             carp "Failed to extract " . $member->fileName() . " to $bibfile";
         }
@@ -82,7 +82,7 @@ foreach my $file (@input_files) {
         $authfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($authfile) == AZ_OK) {
             $import->doFile($authfile);
-            cleanup($authfile) if ($prefs->get('import')->cleanup =~ /^true$/i);
+            cleanup($authfile) if ($prefs->get('import')->cleanup);
         } else {
             carp "Failed to extract " . $member->fileName() . " to $authfile";
         }
@@ -93,7 +93,7 @@ foreach my $file (@input_files) {
         $authfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($authfile) == AZ_OK) {
             $import->doFile($authfile);
-            cleanup($authfile) if ($prefs->get('import')->cleanup =~ /^true$/i);
+            cleanup($authfile) if ($prefs->get('import')->cleanup);
         } else {
             carp "Failed to extract " . $member->fileName() . " to $authfile";
         }
