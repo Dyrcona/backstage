@@ -53,9 +53,9 @@ sub doFile {
         $self->{'auth'} = $self->{'scr'}->authenticate(
             $self->{'prefs'}->evergreen->authentication->TO_JSON
         );
-        if ($filename =~ /\.BIB\./) {
+        if ($filename =~ /BIB/) {
             $self->doBibs($file);
-        } elsif ($filename =~ /\.DEL\./) {
+        } elsif ($filename =~ /DEL/) {
             $self->doDeletes($file);
         } else {
             $self->doAuths($file);
