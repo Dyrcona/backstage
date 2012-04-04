@@ -37,6 +37,7 @@ sub new {
     my $dstr = $self->{'prefs'}->export->last_run_date;
     $dstr =~ s/ /T/;
     $dstr =~ s/\.\d+//;
+    $dstr =~ s/([-+]\d\d)\d\d$/$1/;
     $self->{'export_date'} = DateTime::Format::ISO8601->parse_datetime($dstr);
     bless($self, $class);
     return $self;
