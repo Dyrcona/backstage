@@ -66,7 +66,7 @@ foreach my $file (@input_files) {
     }
 
     my $member;
-    foreach $member ($zip->membersMatching('BIB\.')) {
+    foreach $member ($zip->membersMatching('BIB')) {
         my $bibfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($bibfile) == AZ_OK) {
             $import->doFile($bibfile);
@@ -78,7 +78,7 @@ foreach my $file (@input_files) {
 
     # Handle authority deletes:
     my $authfile;
-    foreach $member ($zip->membersMatching('DEL\.')) {
+    foreach $member ($zip->membersMatching('DEL')) {
         $authfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($authfile) == AZ_OK) {
             $import->doFile($authfile);
@@ -89,7 +89,7 @@ foreach my $file (@input_files) {
     }
 
     # Handle other authorities
-    foreach $member ($zip->membersMatching('^(?!.*(BIB|DEL)\.)')) {
+    foreach $member ($zip->membersMatching('(?!(BIB|DEL))')) {
         $authfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($authfile) == AZ_OK) {
             $import->doFile($authfile);
