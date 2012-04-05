@@ -42,7 +42,8 @@
 	"download":
 		{
 		"source_dir":"out",
-		"destination_dir":"/path/to/directory"
+		"destination_dir":"/path/to/directory",
+		"delete_files":false
 		}
 	},
 "import":

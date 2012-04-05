@@ -283,9 +283,14 @@ source_dir::
   different by Backstage.
 
 destination_dir::
-  The full path to a directory on your computer where the files downloaded
-  from the server will be stored.  The user running the import program must
-  have permissions to read and write files in this directory.
+  The full path to a directory on your computer where the files
+  downloaded from the server will be stored.  The user running the
+  import program must have permissions to read and write files in this
+  directory.
+
+delete_files::
+  A boolean (`true` or `false`) to indicate whether or not the files
+  should be deleted from the FTP server after being downloaded.
 
 import
 ~~~~~~

@@ -83,6 +83,10 @@ sub download {
         my $target = $destination . "/" . $file;
         if ($self->{'ftp'}->get($file, $target)) {
             push(@filenames, $target);
+            if ($self->{'prefs'}->download->delete_files) {
+                carp $self->{'ftp'}->message
+                    unless ($self->{'ftp'}->delete($file));
+            }
         } else {
             carp $self->{'ftp'}->message;
         }
