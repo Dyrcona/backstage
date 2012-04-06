@@ -64,6 +64,7 @@ sub run {
         $request->finish();
         close(OUTPUT);
         $prefs->export->last_run_date(strftime("%F %T%z", localtime($now)));
+        $prefs->pretty(1); #pretty print prefs for easier hand editing.
         $prefs->save;
         return $prefs->export->output;
     }
