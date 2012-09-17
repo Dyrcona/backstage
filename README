@@ -332,6 +332,26 @@ cleanup
 A boolean (`true` or `false`) field to indicate whether or not files
 extracted from zip files should be deleted when we are done with them.
 
+auth_control
+^^^^^^^^^^^^
+
+A JSON object to control parameters to run authority_control_fiels.pl
+after the import of new records.  This is most useful after importing
+authorities.
+
+path
+++++
+
+Specify the full path to authority_control_fields.pl.  This path must
+exist and be executable for the authority control to happen.
+
+days_back
++++++++++
+
+Set days_back to greater than zero in order to have the authority
+control script run.  If you're getting quarterly updates, then 90 is a
+good value.
+
 Invoking the Software
 ---------------------
 

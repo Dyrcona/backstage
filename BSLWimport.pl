@@ -100,6 +100,16 @@ foreach my $file (@input_files) {
     }
 }
 
+# Check for authority control options and run authority_control_fields.pl
+# if it is properly configured.
+if ($prefs->get('import')->auth_control) {
+    my $path = $prefs->get('import')->auth_control->path;
+    my $days_back = $prefs->get('import')->auth_control->days_back;
+    if ($days_back && $days_back > 0 && $path && -e $path) {
+        system("$path --days_back=$days_back");
+    }
+}
+
 sub cleanup {
     # Made this a sub in case we ever want to do more than just unlink
     # the file.
