@@ -105,8 +105,16 @@ foreach my $file (@input_files) {
 if ($prefs->get('import')->auth_control) {
     my $path = $prefs->get('import')->auth_control->path;
     my $days_back = $prefs->get('import')->auth_control->days_back;
-    if ($days_back && $days_back > 0 && $path && -e $path) {
-        system("$path --days_back=$days_back");
+    if ($path && -e $path) {
+        my $bibs = $import->bibs;
+        if (scalar @{$bibs}) {
+            foreach my $id (@{$bibs}) {
+                system("$path --record=$id");
+            }
+        }
+        if ($days_back && $days_back > 0 && $import->have_new_auths > 0) {
+            system("$path --days_back=$days_back");
+        }
     }
 }
 

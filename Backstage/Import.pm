@@ -39,6 +39,8 @@ sub new {
     $dstr =~ s/\.\d+//;
     $dstr =~ s/([-+]\d\d)\d\d$/$1/;
     $self->{'export_date'} = DateTime::Format::ISO8601->parse_datetime($dstr);
+    $self->{'bibs'} = [];
+    $self->{'new_auths'} = 0;
     bless($self, $class);
     return $self;
 }
@@ -102,6 +104,7 @@ sub doBibs {
                     $editor->xact_begin;
                     $editor->update_biblio_record_entry($bre);
                     $editor->commit;
+                    push(@{$self->{'bibs'}}, $id);
                 } else {
                     print("Keep $id\n")
                         if ($self->{'prefs'}->get('import')->print_keep);
@@ -158,6 +161,7 @@ sub doAuths {
             if ($are = $editor->create_authority_record_entry($are)) {
                 print("Created new auth " . $are->id . "\n")
                     if ($self->{'prefs'}->get('import')->print_import);
+                $self->{'new_auths'}++;
             } else {
                 carp("Failed to create new auth\n");
             }
@@ -173,6 +177,17 @@ sub utf8 {
         $self->{'utf8'} = shift;
     }
     return $self->{'utf8'};
+}
+
+# read only property.
+sub bibs {
+    my $self = shift;
+    return $self->{'bibs'};
+}
+
+sub have_new_auths {
+    my $self = shift;
+    return $self->{'new_auths'};
 }
 
 sub find_matching_ares {
