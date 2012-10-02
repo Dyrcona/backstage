@@ -78,7 +78,7 @@ sub doBibs {
         my $id = $input->subfield('901', 'c');
         if ($id) {
             my $bre = $editor->retrieve_biblio_record_entry($id);
-            next if ($U->is_true($bre->deleted));
+            next if (!$bre || $U->is_true($bre->deleted));
             my $record = MARC::Record->new_from_xml($bre->marc, 'UTF8');
             my $str = $bre->edit_date;
             $str =~ s/\d\d$//;
