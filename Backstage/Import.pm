@@ -134,8 +134,9 @@ sub doAuths {
         my @ares = find_matching_ares($editor, $input);
         if (scalar(@ares)) {
             foreach my $are (@ares) {
+                my $record = MARC::Record->new_from_xml($are->marc);
                 if (!$self->{'rerun'} ||
-                        ($self->{'rerun'} && date_comp($input, $are))) {
+                        ($self->{'rerun'} && date_comp($input, $record))) {
                     $editor->xact_begin;
                     print("Updating auth: " . $are->id . "\n")
                         if ($self->{'prefs'}->get('import')->print_import);
