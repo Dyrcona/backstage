@@ -33,7 +33,7 @@ my $prefs_file = $ENV{'HOME'} . "/myprefs.d/bslw.json";
 my $rerun = 0;
 
 # Loop through the command line arguments:
-foreach my $arg (@ARGV) {
+while (my $arg = shift @ARGV) {
     if ($arg =~ /\.json$/) {
         $prefs_file = $arg;
     } elsif ($arg =~ /^-{1,2}r(?:erun)?$/) {
