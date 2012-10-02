@@ -33,6 +33,7 @@ sub new {
     my $class = shift;
     my $self = {};
     $self->{'prefs'} = shift;
+    $self->{'rerun'} = shift;
     $self->{'utf8'} = 0;
     my $dstr = $self->{'prefs'}->export->last_run_date;
     $dstr =~ s/ /T/;
@@ -83,18 +84,7 @@ sub doBibs {
             $str =~ s/\d\d$//;
             my $edit_date = DateTime::Format::ISO8601->parse_datetime($str);
             if (DateTime->compare($edit_date, $self->{'export_date'}) < 0) {
-                my $needImport = 1;
-                my $bslw_date = undef;
-                my $rec_date = undef;
-                $bslw_date = DateTime::Format::ISO8601->parse_datetime(
-                    fix005($input->field('005')->data())
-                ) if (defined($input->field('005')));
-                $rec_date = DateTime::Format::ISO8601->parse_datetime(
-                    fix005($record->field('005')->data())
-                ) if (defined($record->field('005')));
-                if (defined($rec_date)) {
-                    $needImport = DateTime->compare($bslw_date, $rec_date);
-                }
+                my $needImport = date_comp($input, $record);
                 if ($needImport > 0) {
                     print("Import $id\n")
                         if ($self->{'prefs'}->get('import')->print_import);
@@ -142,17 +132,22 @@ sub doAuths {
     my $editor = $self->{'scr'}->editor(authtoken=>$self->{'auth'});
     while (my $input = $file->next()) {
         my @ares = find_matching_ares($editor, $input);
-        $editor->xact_begin;
-        if (scalar @ares) {
+        if (scalar(@ares)) {
             foreach my $are (@ares) {
-                print("Updating auth: " . $are->id . "\n")
-                    if ($self->{'prefs'}->get('import')->print_import);
-                my $newMARC = $input->as_xml_record();
-                $are->marc(clean_marc($newMARC));
-                $are->edit_date('now()');
-                $editor->update_authority_record_entry($are);
+                if (!$self->{'rerun'} ||
+                        ($self->{'rerun'} && date_comp($input, $are))) {
+                    $editor->xact_begin;
+                    print("Updating auth: " . $are->id . "\n")
+                        if ($self->{'prefs'}->get('import')->print_import);
+                    my $newMARC = $input->as_xml_record();
+                    $are->marc(clean_marc($newMARC));
+                    $are->edit_date('now()');
+                    $editor->update_authority_record_entry($are);
+                    $editor->commit;
+                }
             }
         } else {
+            $editor->xact_begin;
             my $are = Fieldmapper::authority::record_entry->new();
             my $marc = $input->as_xml_record();
             $are->marc(clean_marc($marc));
@@ -165,8 +160,8 @@ sub doAuths {
             } else {
                 carp("Failed to create new auth\n");
             }
+            $editor->commit;
         }
-        $editor->commit;
     }
     $editor->finish;
 }
@@ -177,6 +172,14 @@ sub utf8 {
         $self->{'utf8'} = shift;
     }
     return $self->{'utf8'};
+}
+
+sub rerun {
+    my $self = shift;
+    if (@_) {
+        $self->{'rerun'} = shift;
+    }
+    return $self->{'rerun'};
 }
 
 # read only property.
@@ -227,6 +230,29 @@ sub fix005 {
     substr($in,8,0) = 'T';
     $in =~ s/\.0$//;
     return $in;
+}
+
+sub date_comp {
+    my ($bslw, $own) = @_;
+    my $bslw_date = undef;
+    my $rec_date = undef;
+    my $need_import = 1;
+
+    $bslw_date = DateTime::Format::ISO8601->parse_datetime(
+        fix005($bslw->field('005')->data())
+    ) if (defined($bslw->field('005')));
+
+    $rec_date = DateTime::Format::ISO8601->parse_datetime(
+        fix005($own->field('005')->data())
+    ) if (defined($own->field('005')));
+
+    if (defined($bslw_date) && defined($rec_date)) {
+        $need_import = DateTime->compare($bslw_date, $rec_date);
+    } elsif (defined($rec_date) && !defined($bslw_date)) {
+        $need_import = 0;
+    }
+
+    return $need_import;
 }
 
 1;

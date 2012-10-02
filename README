@@ -386,6 +386,16 @@ when determining if the program should retrieve files via FTP.  That
 is, if this is the only file listed on the command line, then the
 program will connect to FTP to download and process files.
 
+You can also specify a --rerun or -r option to start over from a
+partially successful run.  This is useful if you get a CStoreEditor
+timeout, for instance.  This will cause the import to run again on the
+named input file.  When this option is specified, authorities are only
+update if the new authority's 005 date is greater than the existing
+authority's date or the existing authority has no 005.  If the
+existing record has an 005, but the incoming record does not, the
+update is skipped.  If neither record has an 005, then the update
+happens.
+
 README License
 --------------
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0

@@ -29,10 +29,15 @@ my @input_files = ();
 
 my $prefs_file = $ENV{'HOME'} . "/myprefs.d/bslw.json";
 
+# Rerun: or pickup where we left off previously.
+my $rerun = 0;
+
 # Loop through the command line arguments:
 foreach my $arg (@ARGV) {
     if ($arg =~ /\.json$/) {
         $prefs_file = $arg;
+    } elsif ($arg =~ /^-{1,2}r(?:erun)?/) {
+        $rerun = 1;
     } else {
         push(@input_files, $arg);
     }
@@ -52,7 +57,7 @@ my $cwd = $prefs->get('import')->working_dir;
 $cwd .= "/" unless ($cwd =~ /\/$/);
 
 # Create an import object.
-my $import = Backstage::Import->new($prefs);
+my $import = Backstage::Import->new($prefs, $rerun);
 
 foreach my $file (@input_files) {
     # Skip the reports archive.  Maybe someone will want them emailed
