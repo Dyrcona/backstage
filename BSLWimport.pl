@@ -36,7 +36,7 @@ my $rerun = 0;
 foreach my $arg (@ARGV) {
     if ($arg =~ /\.json$/) {
         $prefs_file = $arg;
-    } elsif ($arg =~ /^-{1,2}r(?:erun)?/) {
+    } elsif ($arg =~ /^-{1,2}r(?:erun)?$/) {
         $rerun = 1;
     } else {
         push(@input_files, $arg);
