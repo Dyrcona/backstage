@@ -32,10 +32,15 @@ my $prefs_file = $ENV{'HOME'} . "/myprefs.d/bslw.json";
 # Rerun: or pickup where we left off previously.
 my $rerun = 0;
 
+# Only download the files this time. We'll process them later.
+my $download = 0;
+
 # Loop through the command line arguments:
 while (my $arg = shift @ARGV) {
     if ($arg =~ /\.json$/) {
         $prefs_file = $arg;
+    } elsif ($arg =~ /^-{1,2}d(?:ownload)?$/) {
+        $download = 1;
     } elsif ($arg =~ /^-{1,2}r(?:erun)?$/) {
         $rerun = 1;
     } else {
@@ -50,6 +55,7 @@ my $prefs = JSONPrefs->load($prefs_file);
 unless (scalar @input_files) {
     my $ftp = Backstage::FTP->new($prefs);
     @input_files = $ftp->download;
+    exit(0) if ($download);
 }
 
 # Get our working directory:

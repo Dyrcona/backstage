@@ -386,6 +386,16 @@ when determining if the program should retrieve files via FTP.  That
 is, if this is the only file listed on the command line, then the
 program will connect to FTP to download and process files.
 
+If all you want to do is download the waiting files from Backstage's
+server, then you may specify a -d or --download option without any
+file names.  This option will cause the files to be downloaded from
+the server and then the program exits without processing them.  You'll
+want to run this program again with the names of the downloaded files
+when you're ready to process them.  (I have found this option handy
+when I want to download the files on a Friday or before a long weekend
+and then wait to process them when I get back in the office.)  When
+you specify this option, the --rerun option (below) is ignored.
+
 You can also specify a --rerun or -r option to start over from a
 partially successful run.  This is useful if you get a CStoreEditor
 timeout, for instance.  This will cause the import to run again on the
