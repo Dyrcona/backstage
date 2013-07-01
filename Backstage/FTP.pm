@@ -32,7 +32,8 @@ sub new {
 
 sub sign_on {
     my $self = shift;
-    $self->{'ftp'} = Net::FTP->new($self->{'prefs'}->host)
+    $self->{'ftp'} = Net::FTP->new($self->{'prefs'}->host,
+                                   Passive => $self->{'prefs'}->passive)
         or croak("Failed to connect to " . $self->{'prefs'}->host);
     $self->{'ftp'}->login($self->{'prefs'}->username,$self->{'prefs'}->password)
         or croak($self->{'ftp'}->message);

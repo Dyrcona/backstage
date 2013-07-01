@@ -38,6 +38,7 @@
 	"host":"209.90.107.217",
 	"username":"USERNAME",
 	"password":"PASSWORD",
+        "passive":1,
 	"upload_dir":"in",
 	"download":
 		{
