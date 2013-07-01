@@ -22,13 +22,27 @@ use Backstage::Export;
 use Backstage::Email;
 use Backstage::FTP;
 
-my $prefs_file = $ARGV[0] || $ENV{'HOME'} . "/myprefs.d/bslw.json";
+my ($prefs_file, $upload_file);
+
+while (@ARGV) {
+    my $arg = shift @ARGV;
+    if ($arg eq '-c') {
+        $prefs_file = shift @ARGV;
+    } elsif ($arg eq '-f') {
+        $upload_file = shift @ARGV;
+    } else {
+        croak("Invalid argument $arg");
+    }
+}
+
+$prefs_file ||= $ENV{'HOME'} . "/myprefs.d/bslw.json";
 
 my $prefs = JSONPrefs->load($prefs_file);
 
-my $exporter = Backstage::Export->new($prefs);
-
-my $upload_file = $exporter->run;
+unless ($upload_file) {
+    my $exporter = Backstage::Export->new($prefs);
+    $upload_file = $exporter->run;
+}
 
 my $email = Backstage::Email->new($prefs);
 $email->add_recipient(@{$prefs->export->recipients});
