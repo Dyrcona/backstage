@@ -159,7 +159,7 @@ sub doAuths {
                     if ($self->{'prefs'}->get('import')->print_import);
                 $self->{'new_auths'}++;
             } else {
-                carp("Failed to create new auth\n");
+                carp("Failed to create new auth");
             }
             $editor->commit;
         }
@@ -237,20 +237,34 @@ sub date_comp {
     my ($bslw, $own) = @_;
     my $bslw_date = undef;
     my $rec_date = undef;
-    my $need_import = 1;
+    my $need_import = 0;
 
-    $bslw_date = DateTime::Format::ISO8601->parse_datetime(
-        fix005($bslw->field('005')->data())
-    ) if (defined($bslw->field('005')));
+    eval {
+        $bslw_date = DateTime::Format::ISO8601->parse_datetime(
+            fix005($bslw->field('005')->data())
+        ) if (defined($bslw->field('005')));
+    };
+    if ($@) {
+        my $id = $bslw->subfield('901', 'c');
+        carp("Bad 005 date in BSLW record $id");
+        undef($bslw_date);
+    }
 
-    $rec_date = DateTime::Format::ISO8601->parse_datetime(
-        fix005($own->field('005')->data())
-    ) if (defined($own->field('005')));
+    eval {
+        $rec_date = DateTime::Format::ISO8601->parse_datetime(
+            fix005($own->field('005')->data())
+        ) if (defined($own->field('005')));
+    };
+    if ($@) {
+        my $id = $own->subfield('901', 'c');
+        carp("Bad 005 date in our record $id");
+        undef($rec_date);
+    }
 
     if (defined($bslw_date) && defined($rec_date)) {
         $need_import = DateTime->compare($bslw_date, $rec_date);
-    } elsif (defined($rec_date) && !defined($bslw_date)) {
-        $need_import = 0;
+    } elsif (defined($bslw_date) && !defined($rec_date)) {
+        $need_import = 1;
     }
 
     return $need_import;
