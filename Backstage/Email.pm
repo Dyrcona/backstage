@@ -1,5 +1,5 @@
 # ---------------------------------------------------------------
-# Copyright © 2012 Merrimack Valley Library Consortium
+# Copyright © 2012,2015 Merrimack Valley Library Consortium
 # Jason Stephenson <jstephenson@mvlc.org>
 
 # This program is free software; you can redistribute it and/or modify
@@ -22,11 +22,11 @@ sub new {
     my $class = shift;
     $prefs = shift;
     my $self->{'smtp_module'} = 'Net::SMTP';
-    my $encryption = $prefs->email->smtp->encryption;
+    my $encryption = $prefs->email->smtp->encryption || 'none';
     $self->{'smtp_module'} .= "::SSL" if ($encryption =~ /^ssl$/i);
     $self->{'smtp_module'} .= "::TLS" if ($encryption =~ /^tls$/i);
     $self->{'smtp_host'} = $prefs->email->smtp->host;
-    $self->{'smtp_port'} = $prefs->email->smtp->port;
+    $self->{'smtp_port'} = $prefs->email->smtp->port || 25;
     $self->{'smtp_user'} = $prefs->email->smtp->user;
     $self->{'smtp_password'} = $prefs->email->smtp->password;
     $self->{'smtp_from'} = $prefs->email->smtp->from;
@@ -75,12 +75,13 @@ sub send {
         if ($self->{'smtp_from'}->name);
 
     # Create the smtp object.
-    my $smtp = $self->{'smtp_module'}->new(
-        $self->{'smtp_host'},
-        Port => $self->{'smtp_port'},
-        User => $self->{'smtp_user'},
-        Password => $self->{'smtp_password'}
-    );
+    # We build a funky args array, first.
+    my @args = ($self->{'smtp_host'}, 'Port', $self->{'smtp_port'});
+    if ($self->{'smtp_user'} && $self->{'smtp_password'}) {
+        push(@args, User => $self->{'smtp_user'});
+        push(@args, Password => $self->{'smtp_password'});
+    }
+    my $smtp = $self->{'smtp_module'}->new(@args);
 
     # Create the message:
     my $message = MIME::Lite->new(
