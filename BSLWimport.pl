@@ -100,7 +100,7 @@ foreach my $file (@input_files) {
     }
 
     # Handle other authorities
-    foreach $member ($zip->membersMatching('(?!(BIB|DEL))')) {
+    foreach $member ($zip->membersMatching('^(?!(BIB|DEL|R\d{2}))')) {
         $authfile = $cwd . basename($member->fileName());
         if ($member->extractToFileNamed($authfile) == AZ_OK) {
             $import->doFile($authfile);
