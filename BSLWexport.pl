@@ -44,13 +44,12 @@ unless ($upload_file) {
     $upload_file = $exporter->run;
 }
 
-my $email = Backstage::Email->new($prefs);
-$email->add_recipient(@{$prefs->export->recipients});
-
 if ($upload_file) {
     my $ftp = Backstage::FTP->new($prefs);
     my $remote_file = $ftp->upload($upload_file);
     if ($remote_file) {
+        my $email = Backstage::Email->new($prefs);
+        $email->add_recipient(@{$prefs->export->recipients});
         $email->subject('BSLW Export Success');
         $email->add_part(
             {
@@ -58,6 +57,7 @@ if ($upload_file) {
                 Type => 'TEXT'
             }
         );
+        $email->send;
     } else {
         die("Failed to upload " . $upload_file);
     }
@@ -65,4 +65,3 @@ if ($upload_file) {
     die("Failed to export " . $prefs->export->output);
 }
 
-$email->send;
