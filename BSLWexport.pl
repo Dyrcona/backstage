@@ -24,15 +24,23 @@ use Backstage::FTP;
 
 my ($prefs_file, $upload_file);
 
+my $dry_run = 0;
+
 while (@ARGV) {
     my $arg = shift @ARGV;
     if ($arg eq '-c') {
         $prefs_file = shift @ARGV;
     } elsif ($arg eq '-f') {
         $upload_file = shift @ARGV;
+    } elsif ($arg eq '-n') {
+        $dry_run = 1;
     } else {
         die("Invalid argument $arg");
     }
+}
+
+if ($dry_run && $upload_file) {
+    die("Dry run (-n) is not compatible with upload file (-f)");
 }
 
 $prefs_file ||= $ENV{'HOME'} . "/myprefs.d/bslw.json";
@@ -41,10 +49,10 @@ my $prefs = JSONPrefs->load($prefs_file);
 
 unless ($upload_file) {
     my $exporter = Backstage::Export->new($prefs);
-    $upload_file = $exporter->run;
+    $upload_file = $exporter->run($dry_run);
 }
 
-if ($upload_file) {
+if ($upload_file && !$dry_run) {
     my $ftp = Backstage::FTP->new($prefs);
     my $remote_file = $ftp->upload($upload_file);
     if ($remote_file) {
@@ -61,7 +69,7 @@ if ($upload_file) {
     } else {
         die("Failed to upload " . $upload_file);
     }
-} else {
+} elsif (!$dry_run) {
     die("Failed to export " . $prefs->export->output);
 }
 

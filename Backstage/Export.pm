@@ -34,6 +34,7 @@ sub new {
 
 sub run {
     my $self = shift;
+    my $dry_run = shift;
 
     my $prefs = $self->{'prefs'};
     OpenSRF::System->bootstrap_client(config_file=>
@@ -63,9 +64,11 @@ sub run {
         }
         $request->finish();
         close(OUTPUT);
-        $prefs->export->last_run_date(strftime("%F %T%z", localtime($now)));
-        $prefs->pretty(1); #pretty print prefs for easier hand editing.
-        $prefs->save;
+        unless ($dry_run) {
+            $prefs->export->last_run_date(strftime("%F %T%z", localtime($now)));
+            $prefs->pretty(1); #pretty print prefs for easier hand editing.
+            $prefs->save;
+        }
         return $prefs->export->output;
     }
 
