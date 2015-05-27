@@ -31,7 +31,7 @@ while (@ARGV) {
     } elsif ($arg eq '-f') {
         $upload_file = shift @ARGV;
     } else {
-        croak("Invalid argument $arg");
+        die("Invalid argument $arg");
     }
 }
 
@@ -59,10 +59,10 @@ if ($upload_file) {
             }
         );
     } else {
-        croak("Failed to upload " . $upload_file);
+        die("Failed to upload " . $upload_file);
     }
 } else {
-    croak("Failed to export " . $prefs->export->output);
+    die("Failed to export " . $prefs->export->output);
 }
 
 $email->send;

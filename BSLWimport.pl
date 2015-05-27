@@ -22,7 +22,6 @@ use Backstage::FTP;
 use Backstage::Import;
 use Archive::Zip qw( :ERROR_CODES :CONSTANTS );
 use File::Basename;
-use Carp;
 
 # pass input file names on the command line as arguments
 my @input_files = ();
@@ -73,7 +72,7 @@ foreach my $file (@input_files) {
     # Probably need to unzip the curcat data.
     my $zip = Archive::Zip->new();
     unless ($zip->read($file) == AZ_OK) {
-        carp "Failed to read $file";
+        warn "Failed to read $file";
     }
 
     my $member;
@@ -83,7 +82,7 @@ foreach my $file (@input_files) {
             $import->doFile($bibfile);
             cleanup($bibfile) if ($prefs->get('import')->cleanup);
         } else {
-            carp "Failed to extract " . $member->fileName() . " to $bibfile";
+            warn "Failed to extract " . $member->fileName() . " to $bibfile";
         }
     }
 
@@ -95,7 +94,7 @@ foreach my $file (@input_files) {
             $import->doFile($authfile);
             cleanup($authfile) if ($prefs->get('import')->cleanup);
         } else {
-            carp "Failed to extract " . $member->fileName() . " to $authfile";
+            warn "Failed to extract " . $member->fileName() . " to $authfile";
         }
     }
 
@@ -106,7 +105,7 @@ foreach my $file (@input_files) {
             $import->doFile($authfile);
             cleanup($authfile) if ($prefs->get('import')->cleanup);
         } else {
-            carp "Failed to extract " . $member->fileName() . " to $authfile";
+            warn "Failed to extract " . $member->fileName() . " to $authfile";
         }
     }
 }
