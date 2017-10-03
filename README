@@ -50,7 +50,7 @@ software.  The others, with the exception of JSONPrefs, should be
 available either as packages on your system or via CPAN.
 
 JSONPrefs can be found online here:
-http://git.mvlcstaff.org/?p=jason/JSONPrefs.git;a=summary
+https://github.com/Dyrcona/JSONPrefs
 
 Installation
 ------------
